@@ -2,8 +2,8 @@
 This is very simple, but yet powerful templating engine written in PHP, which allows to separate server-side and client-side development, but still offers some space to think outside the template. 
 
 **Key features:**
-* Taking templates and filling them 
-* Nesting HTML elements recursively according to data - no limit of maximum nested element
+* Taking templates and filling them with data produced by your backend
+* Nesting HTML elements recursively according to data - no limit of maximum nested elements
 * Creating custom elements, which don't exist in the initial template at all
 * Nesting custom elements inside other custom elements (useful for creating select boxes, for example). No limitations on depth of nesting
 * Replacing single placeholder with multiple elements of the same type
@@ -12,8 +12,9 @@ This is very simple, but yet powerful templating engine written in PHP, which al
 
 ## How does it work?
 **TL:DR**
-$pageObject = new Pagificator($yourDataArray);
-$html = $pageObject->getCodeString();
+```$pageObject = new Pagificator($yourDataArray);
+$html = $pageObject->getCodeString();```
+
 For practical code examples see demo files - you'll get both results and data structures in front of you.
 
 ### Simple templating
