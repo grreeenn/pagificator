@@ -265,7 +265,7 @@ Array
           }
 
 
-          if ($level < $this->maxDepth)     
+          if ($level < $this->maxDepth&&isset($item['items'])&&is_array($item['items']))     
             $huemplate = str_replace("{{content}}", self::buildHTML($item['items'],$nextBlock), $template);
           else if ($level == $this->maxDepth)
             $huemplate = $template;
