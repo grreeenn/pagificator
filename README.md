@@ -26,7 +26,7 @@ For practical code examples and array structures see demo files - you'll get bot
 #### Data structure
 The Pagificator needs your data to be organized in a certain way.
 
-**The basic array structure is:**
+**Members of the basic array structure are:**
 * [itemName] - type of the current item; Pagificator will look for template named with value of this parameter
 * [itemsToReplace] - zero-based array of placeholders to replace
 * your data items, while key corresponds with one of placeholders in [itemsToReplace] - it's value will be bonded inside the template
