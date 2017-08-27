@@ -67,8 +67,8 @@ The principle is simple: get your backend arrange your data in arrays of certain
 **TL:DR**
 
 $pageObject = new Pagificator($yourDataArray);
-$html = $pageObject->getCodeString();
-For practical code examples see demo files - you'll get both results and data structures in front of you.
+$html = $pageObject->getCodeString(); (or $pageObject->populateFile(path/to/write);)
+For practical code examples and array structures see demo files - you'll get both results and data structures in front of you.
 
 ### Simple templating
 #### Data structure
@@ -91,6 +91,8 @@ Templates are being stored at pagificator/templates/pageType/ folder. Each templ
 Unused placeholders will be wiped out of the final code. You can see templates examples in the project's templates/demo/ folder.
 
 ### Custom elements
+$elementCode = Pagificator::buildElement($yourDataArray);
+
 The Pagificator also allows to create custom elements, not just to fill those which already exist in template with data.
 For this purpose an subarray called [customElements] should be added to the item you need it in. [customElements] should be an array of arrays each member of which represents a custom element. 
 
@@ -107,3 +109,12 @@ The **complex structure** may contain multiple elements, each one of which may c
 **[elements]** is an array of arrays, each member of which represents separate element of the same type; it contains  [attributes] and [fill] for each one of the elements.
 
 In this case, **[fill]** may be either a string or an array. In case it's a string, it will be simply concatinated between the opening and closing tags. In case that it's an array, it may contain both strings (which will be concatenated one after another) and arrays with additional elements while each of them have either simple or complex element array structure described above.
+
+After you ordered your data, just call Pagificator::buildElement($yourArray) and get an element string code in return. It's a static method, so it may be called without creating a Pagificator object.
+
+### Helper functions
+Sometimes it's just bit too complicated to produce such an array structure for complex elements with nesting. So there are two out-of-the box helper functions for creating array structures for lists and select boxed straight from the DB result. Both methods are static (callable without creating an object).
+
+* __buildListArray($type, $listAttributes, $memberAttributes, $members)__ - where type is a list type (ul/ol), $listAttributes are HTML attributes applied to the list itself, $memberAttributes are attributes applied to each list member (both are key=>value arrays), and $members is your DB result (array of arrays). Only the first column of each row will be used - filled into the list items.
+* __buildListboxArray($attributes, $options, $selectedValue)__ - where $attributes are HTML attributes for the <select> element, $options is your DB result (only first two columns will be used; first for value, second for option text) and $selectedValue is an element that need to be preselected (optional).
+
