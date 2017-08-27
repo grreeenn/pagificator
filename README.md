@@ -12,8 +12,10 @@ This is very simple, but yet powerful templating engine written in PHP, which al
 
 ## How does it work?
 **TL:DR**
-``` $pageObject = new Pagificator($yourDataArray);
-``` $html = $pageObject->getCodeString();
+```php
+$pageObject = new Pagificator($yourDataArray);
+$html = $pageObject->getCodeString();
+```
 
 For practical code examples see demo files - you'll get both results and data structures in front of you.
 
