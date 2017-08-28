@@ -1,5 +1,5 @@
 # The Pagificator (beta)
-This is very simple, but yet powerful templating engine written in PHP, which allows to separate server-side and client-side development, but still offers some space to think outside the template. 
+This is very simple, but yet powerful templating one-class-engine written in PHP, which allows to separate server-side and client-side development, but still offers some space to think outside the template. 
 
 There are lots of template engines, and its closest conceptual relative seem to be {dwoo}. I considered using {dwoo} in my (in-progress) photo gallery CMS, but found some lack of features; although I needed something extra-simple - so I decided to write one of my own, and here we are.
 
