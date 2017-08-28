@@ -37,7 +37,7 @@ The Pagificator needs your data to be organized in a certain way.
 _Please note, that the first level of the data array should, in addition to other elements, contain also these ones:_
 * [pageType] - will be picked at object construcion and used to choose a sub-folder to locate template files (/templates/pageType/)
 * [maxDepth] - maximum nesting level
-* [pageLang] - at the moment must contain HTML. In future versions CSS will be supported also
+* [pageLang] - language of the page. At the moment must contain 'HTML', in future versions CSS will be supported also
 
 #### Template structure
 Templates are being stored at pagificator/templates/pageType/ folder. Each template is an HTML code snippet which represents a single structural element of certain level of nesting. Inside each snippet, in the places which should represent server data, should appear a {{placeholder}} in double curly braces which corresponds with the peace of data in the data array you provided. If this element should have more nested elements, it should contain {{content}} placeholder - it will be replaced with nested elements (provided in [items] subarray).
