@@ -217,7 +217,7 @@ Array
 
 
       if (isset($content[0]['itemName']))
-        $pathToTemplate = "../pagificator/templates/".$this->pageType."/".$content[0]['itemName'].".html";
+        $pathToTemplate = "templates/".$this->pageType."/".$content[0]['itemName'].".html";
       else 
         throw new Exception ("No item name set - can't identify template file");
 
