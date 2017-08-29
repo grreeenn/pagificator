@@ -25,7 +25,7 @@ catch (Throwable $e) {
 }
 ```
 For practical code examples and array structures see demo files - you'll get both data structures and work results and in front of you. 
-You can also play around with a (test app on OpenShift)(http://bit.ly/2wQ1g1p)
+You can also play around with a [test app on OpenShift](http://bit.ly/2wQ1g1p)
 
 ### Simple templating
 #### Data structure
