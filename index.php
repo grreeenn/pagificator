@@ -1,24 +1,3 @@
-<?php
-//require_once "fileGenerator.php";
-
-$firstLevel = array(
-				 "depth"=>0,
-				 "itemName" => 'container',
-				 "pageType" => "demo",
-				 "pageLang" => "html",
-				 "itemsToReplace" => array(),
-				 "items" => array()
-	);
-$secondLevel = array (
-				'depth' => 1,
-				'itemName' => 'category',
-				'itemsToReplace' => array('categoryID','categoryName'),
-				'items' => array()
-	);
-
-//var_dump($firstLevel);
-?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,10 +9,13 @@ $secondLevel = array (
 		<p>The Pagificator is a simple templating engine in PHP. It gets the arrays of data and bounds it to placeholders in HTML templates. Please choose the parameters below, click Generate and look how it works:</p>
 		<form action="demo.php" method="post">
 			<label style="display:block;">
-				<p class="formCaption">Amount of items on page. You can set up to 1000 items, but I only have 19 - so they'll repeat themselves</p>
-				<input type="number" min="1" max="1000" value="1" name="qty">
+				<p class="formCaption">Amount of mechoses that will be shown on page. You can set up to 1000 of them, but I only have 19 mechoses - so they'll repeat themselves from the 20th</p>
+				<input type="number" min="1" max="1000" value="1" name="itemsQty">
 			</label>
-			
+			<label style="display:block;">
+				<p class="formCaption">Amount of nested spans inside a custom paragraph (will appear on the page header. If set to 0, no custom paragraph will be created)</p>
+				<input type="number" min="0" max="20" value="1" name="spanQty">
+			</label>
 			<label style="display:block;">
 				<input type="checkbox" name="addList" />
 				<p class="checkboxCaption" style="display:inline;">Add custom list to description</p>

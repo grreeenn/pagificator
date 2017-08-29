@@ -1,10 +1,10 @@
 <?php
 error_reporting(E_ALL); ini_set('display_errors', '1'); 
-$debugMode=true;
 
 require_once('pagificator.php');
 
-$itemsQty = (isset($_POST['qty'])?$_POST['qty']:1);
+$itemsQty = (isset($_POST['itemsQty'])?(int)$_POST['itemsQty']:1);
+$spanQty = (isset($_POST['spanQty'])?(int)$_POST['spanQty']:1);
 $addList = (bool)(isset($_POST['addList'])?$_POST['addList']:0);
 $addSelect = (bool)(isset($_POST['addSelect'])?$_POST['addSelect']:0);
 $output='beeboozee';
@@ -79,15 +79,36 @@ $output = array(
 		'summary' => $summaryString,
 		'depth' => 0,
 		'maxDepth' => 1,
-		'items' => array()
+		'items' => ''
 	);
 if ($addList)
-	$output['customElements']=array($customList);
+	$output['customElements'][]=$customList;
 
 $i=0;
 $items = array();
-$arrayIndex=0;
 
+if ($spanQty>0)
+{
+	$customP = array (
+				'type' => 'p',
+				'attributes' => array('class'=>'testParagraph'),
+				'placeholder' => 'customP',
+				'fill'=>array()
+					);
+
+	for ($i=0;$i<$spanQty;$i++)
+	{
+		$customP['fill'][] = array (
+															'type' => 'span',
+															'attributes' => array('class'=>'nestedSpan','style'=>'display:block;'),
+															'fill'=>array('Nested ','span #',($i+1))
+														);
+	}
+	$customP['fill'][] = ' paragraph continues after last span';
+	$output['customElements'][]=$customP;
+}
+
+$arrayIndex=0;
 for ($i=0;$i<$itemsQty;$i++)
 {
 	if ($arrayIndex==18) 
@@ -96,7 +117,7 @@ for ($i=0;$i<$itemsQty;$i++)
 	$name = array_keys($mechoses)[$arrayIndex];
 	$imageLink = $mechoses[$name];
 	$mechos = array(
-			'itemName'=>'item',
+			'itemName'=>'mechos',
 			'depth' => 1,
 			'itemsToReplace' => array('picturePreviewURL','pictureID','pictureCaption'),
 			'picturePreviewURL' => $imageLink,
@@ -112,21 +133,14 @@ for ($i=0;$i<$itemsQty;$i++)
 
 $output['items'] = $items;
 
-
-$htmlGenerator = new Pagificator($output);
-//check constructor's error
-if ($htmlGenerator->allGood()['error']===false) 
-{
+try {
+	$htmlGenerator = new Pagificator($output);
 	$htmlCode = $htmlGenerator->getCodeString();
-	//check generating process issues
-	if (is_array($htmlCode)&&$debugMode) 
-		$htmlCode = '<pre>'.print_r($htmlCode,true).'</pre>';
-	else if (is_array($htmlCode)&&!$debugMode)
-		$htmlCode = "<p>Something happened. We're investigating the matter as you read it. Be advised</p>";
 }
-else if ($debugMode)
-	$htmlCode = $htmlGenerator->allGood()['errorMessage'];
-
+catch (Throwable $e) {
+	print_r($e->getMessage());
+	$htmlCode = '<p>Error occured, see array below</p>';
+}
 
 ?>
 <html>

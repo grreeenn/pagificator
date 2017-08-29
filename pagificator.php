@@ -12,18 +12,22 @@ class Pagificator {
     if (isset($pageContent['pageType']))
       $this->pageType = $pageContent['pageType'];
     else
-      $this->error = array ('error'=>1,'errorMessage'=>'Page type not set');
+      throw new Exception('Pagificator initialization failed: page type not set');
+
     if (isset($pageContent['maxDepth']))
       $this->maxDepth = $pageContent['maxDepth'];
     else
-       $this->error = array ('error'=>true,'errorMessage'=>'Max depth not set');
+      throw new Exception('Pagificator initialization failed: max depth not set');
+
+    if (!isset($pageContent['pageLang']))
+      throw new Exception('Pagificator initialization failed: page language not set or not supported');
   }
-  public function allGood() {
+
+  public function getErrors() {
     return $this->error;
   }
-  //this function creates an HTML file from this page object. 
-  //if $returnCode is true, it will not create a file, but return the code as a string
-
+  
+  //returns an HTML code produced from given data as a string
   public function getCodeString () {
     $html = '';
     $fileContent = 'No content so far';
@@ -34,6 +38,7 @@ class Pagificator {
     return $fileContent;
   }
 
+  //creates a file from HTML code produced from given data
   public function populateFile($pathToFile='/')
   {
     $html = '';
@@ -41,29 +46,10 @@ class Pagificator {
       $fileContent = self::buildHTML(array($this->pageContent),$html);
     // else if ($this->pageContent['pageLang']=='css')
     //  $fileContent = buildCSS();
-
-    //if buildHTML encountered no errors, fileContent will be string
-    if (is_array($fileContent)===false)
-    {
-      try
-      {
-        $file = fopen($pathToFile, 'w');
-        fwrite($file, $fileContent);
-        fclose($file);
-        return array("error"=>false);
-      }
-      catch (Throwable $e)
-      {
-        $error = array();
-        $error['error']=true;
-        $error['errorMessage'] = 'Exception in '.$e->getFile().' on line '.$e->getLine().': '. $e->getMessage();
-        $error['trace'] = $e->getTraceAsString();
-        return $error;
-        die();
-      }
-    }
-    else //otherwise, some errors occured, return them
-      return $fileContent;
+    
+    $file = fopen($pathToFile, 'w');
+    fwrite($file, $fileContent);
+    fclose($file);
   }
 
   /*
@@ -226,77 +212,83 @@ Array
   */
   private function buildHTML ($content, &$html)
   {
-    try {
-      $level = $content[0]['depth'];
-      //$finalHTML=file_get_contents("templates/".$pageType."/container.html");;
-      $pathToTemplate = "../pagificator/templates/".$this->pageType."/".$content[0]['itemName'].".html";
-      
-//$html .= json_encode($content);
-      
+      if (is_array($content)===false)
+        throw new Exception ('Content given is not an array');
+
+
+      if (isset($content[0]['itemName']))
+        $pathToTemplate = "../pagificator/templates/".$this->pageType."/".$content[0]['itemName'].".html";
+      else 
+        throw new Exception ("No item name set - can't identify template file");
+
+      if (isset($content[0]['depth']))
+        $level = $content[0]['depth'];
+      else
+        throw new Exception ('No depth set (item name '.$content[0]['itemName'].')');
+
+      $i=0;
       foreach ($content as $item)
       {
-        if (isset($item['errorMessage']))
+        $nextBlock = '';
+        $template = file_get_contents($pathToTemplate);
+
+        //fill template with plain data from the array
+        if (is_array($item['itemsToReplace']))
         {
-          $html .= '<span>'.$item['errorMessage'].'</span>';
-        }
-        else
-        {
-          $nextBlock = '';
-          $template = file_get_contents($pathToTemplate);
-          //fill template with plain data from the array
           foreach ($item['itemsToReplace'] as $value)
           {
             $placeholder="{{".$value."}}";
-            $template = str_replace($placeholder,$item[$value],$template);
+            if (isset($item[$value]))
+              $template = str_replace($placeholder,$item[$value],$template);
+            else 
+              throw new Exception ('No replacement value for '.$value.' at level '.$level.' position '.$i);
           }
-
-          //fill template with custom elements required
-          if (isset($item['customElements']) && is_array($item['customElements']))
-          {
-            foreach ($item['customElements'] as $element)
-            {
-              $placeholder = '{{'.$element['placeholder'].'}}';
-              $elementCode = self::buildElement($element);
-              if (!is_array($elementCode))
-               $template = str_replace($placeholder,$elementCode,$template);
-              else if ($elementCode['error']===true)
-                throw $elementCode['errorObject'];
-            }
-          }
-
-
-          if ($level < $this->maxDepth&&isset($item['items'])&&is_array($item['items']))     
-            $huemplate = str_replace("{{content}}", self::buildHTML($item['items'],$nextBlock), $template);
-          else if ($level == $this->maxDepth)
-            $huemplate = $template;
-
-          $html .= $huemplate;
         }
+
+        //fill template with custom elements required
+        if (isset($item['customElements']) && is_array($item['customElements']))
+        {
+          foreach ($item['customElements'] as $element)
+          {
+            $placeholder = '{{'.$element['placeholder'].'}}';
+            $elementCode = self::buildElement($element);
+            if (!is_array($elementCode))
+             $template = str_replace($placeholder,$elementCode,$template);
+            else if ($elementCode['error']===true)
+              throw $elementCode['errorObject'];
+          }
+        }
+
+        if ($level < $this->maxDepth)
+        { 
+          $emptyString = '';
+          $nextBlock = self::buildHTML($item['items'],$emptyString);
+          if (is_array($nextBlock))
+            throw $nextBlock['errorObject'];
+          else  
+            $huemplate = str_replace("{{content}}", $nextBlock, $template);
+        }
+        else if ($level == $this->maxDepth)
+          $huemplate = $template;
+
+        $html .= $huemplate;
+      
+        $i++;
       }
 
       //clear all unused placeholders
       $html = preg_replace("/\{{2}(.*?)\}{2}/is", '', $html);
 
       return $html; 
-    }
-    catch (Throwable $e) {
-      $error = array();
-      $error['error'] = true;
-      $error['errorMessage'] = 'Exception in '.$e->getFile().' on line '.$e->getLine().': '. $e->getMessage();
-      $error['inputCaused'] = $content;
-      $error['htmlProducedTillNow'] = $html;
-      $error['trace'] = $e->getTraceAsString();
-      return $error;
-      die();
-    }
   }
 
-  /*this function builds HTML elements by given parameters.
-  $elements is a single member of customElements, which may contain multiple elements of the same type which replace the same placeholder in the template.
+  /*
+  this function builds HTML elements by given parameters.
+  $elements is a single member of customElements, which may contain multiple elements of the same type which replace the same placeholder in the template - in this case all of the specific element info need to be put into [elements] subarray - only the [type] remains in the array root
   
   each element may contain unlimited number of nested elements; if [fill] is an array it means that there are nested elements and the function will run on them recursively.
 
-  There's an simplified scheme for creating simple single elements with no closing tag - no [elements] needed, only [type] and optional [attributes]
+  There's an simplified scheme for creating simple single elements - no [elements] needed, [type], [attributes] and [fill] may be put alongside the type in the root of an array. [fill] may also contain nested elements in this case
 
   the array structure:
   [customElements] => Array
@@ -408,19 +400,26 @@ Array
   */
   static function buildElement($elements)
   {
-    try
-    {
       if (is_array($elements))
       {
-        $type = $elements['type'];
-        $elementCode = ''; //result var
+        if (isset($elements['type']))
+          $type = $elements['type'];
+        else
+          throw new Exception ('Custom element: no element type set');
 
-        //if it's a complex element go through its elements
+        //result var
+        $elementCode = ''; 
+
+        //elements with no closing tag
+        $voidElements = array('area','base','br','col','command','embed','hr','img','input','keygen','link','meta','param','source','track','wbr');
+
+        //if there are multiple elements need to be placed in place of one placeholder, go through them
         if (isset($elements['elements'])&&is_array($elements['elements']))
         {
           foreach ($elements['elements'] as $element)
           {
             $attributes = (isset($element['attributes'])?$element['attributes']:'');
+
             $fill = $element['fill'];
 
             $elementCode .= '<'.$type.' ';
@@ -434,32 +433,38 @@ Array
                   $elementCode .= $value;
               }
             }
-            $elementCode .= '>';
 
-            if (is_array($fill)) //for nested elements (like, ex, li or option)
+
+            if (in_array($type, $voidElements))
+              $elementCode .= ' />';
+            else
             {
-              foreach ($fill as $nestedElement)
+              $elementCode .= '>';
+              if (is_array($fill)) //for nested elements (like, ex, li or option)
               {
-                //$fill may be an array containing nested elements
-                if (is_array($nestedElement))
-                  $elementCode .= self::buildElement($nestedElement);
-                //otherwise it acts like a text between opening and closing tags of an element
-                else
-                  $elementCode .= $nestedElement;
+                foreach ($fill as $nestedElement)
+                {
+                  //$fill may be an array containing nested elements
+                  if (is_array($nestedElement))
+                    $elementCode .= self::buildElement($nestedElement);
+                  //otherwise it acts like a text between opening and closing tags of an element
+                  else
+                    $elementCode .= $nestedElement;
+                }
+                $elementCode .= '</'.$type.'>';
               }
-              //only elements with closing tag may contain nested elements, so close it anyway
-              $elementCode .= '</'.$type.'>';
+              else
+                $elementCode .= $fill.'</'.$type.'>';
             }
-            else if ($type!=='img'||$type!=='input')
-              $elementCode .= $fill.'</'.$type.'>';
           }
         }
         /*
           simplified scheme for single element
           only element type is mandatory
           if fill or attributes applicable, put them into $element itself instead of ['elements'] subarray member
+          fill may be an array with nested elements
         */
-        else if (!isset($elements['elements']))
+        else
         {
           $elementCode .= '<'.$type.' ';
           if (isset($elements['attributes'])&&is_array($elements['attributes']))
@@ -472,25 +477,36 @@ Array
                 $elementCode .= $value;
             }
           }
-          //if element got filling, concatinate it and close element
-          if (isset($elements['fill'])&&is_array($elements['fill'])===false)
+
+          if (in_array($type, $voidElements))
+            $elementCode .= ' />';
+          else if (isset($elements['fill'])&&is_array($elements['fill'])===false)
           {
             $elementCode .= '>';
             $elementCode .= $elements['fill'];
             $elementCode .= '</'.$type.'>';
+          }          
+          else if (isset($elements['fill'])&&is_array($elements['fill']))
+          {
+            $elementCode .= '>';
+            foreach ($elements['fill'] as $nestedElement)
+            {
+              //$nestedElement may be an array containing nested elements
+              if (is_array($nestedElement))
+                $elementCode .= self::buildElement($nestedElement);
+              //otherwise it's a text between opening and closing tags of an element
+              else
+                $elementCode .= $nestedElement;
+            }
+            $elementCode .= '</'.$type.'>';
           }
-          //else close it properly
           else if (!isset($elements['fill']))
-            $elementCode .= ' />';
+            $elementCode .= '></'.$type.'>';
         }
         return $elementCode;
       }
-      else return array('error'=>false);
-    }
-    catch (Throwable $e)
-    {
-      return array('error'=>true,'errorObject'=>$e);
-    }
+      else 
+        throw new Exception ('Custom element: input parameter must be an array');    
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -502,26 +518,26 @@ Array
   //$selectedValue parameter serve to pre-select one of the options
   static function buildListboxArray($attributes, $options, $selectedValue=null) 
   {
-    $elementArray = array("type"=>"select","elements"=>array(array()));
-    $elementArray['elements'][0]['fill'] = array(array());
+    $elementArray = array("type"=>"select","attributes"=>$attributes,'fill'=>array());
 
-    $elementArray['elements'][0]['attributes'] = $attributes;
+    $elementArray['fill'][0]['type'] = "option";
 
-    $elementArray['elements'][0]['fill'][0]['type'] = "option";
+    $elementArray['fill'][0]['elements'] = array();
 
-    $elementArray['elements'][0]['fill'][0]['elements'] = array();
-
-    foreach ($options as $option) 
+    if (is_array($options))
     {
-      $value = $option[array_keys($option)[0]];
-      $fill = $option[array_keys($option)[1]];
+      foreach ($options as $option) 
+      {
+        $value = $option[array_keys($option)[0]];
+        $fill = $option[array_keys($option)[1]];
 
-      $optionArray = array('attributes'=>array('value'=>$value));
-      if ($value==$selectedValue)
-        $optionArray['attributes']['{simpleAttr}'] = 'selected';
-      $optionArray['fill'] = $fill;
+        $optionArray = array('attributes'=>array('value'=>$value));
+        if ($value==$selectedValue)
+          $optionArray['attributes']['{simpleAttr}'] = 'selected';
+        $optionArray['fill'] = $fill;
 
-      $elementArray['elements'][0]['fill'][0]['elements'][] = $optionArray;
+        $elementArray['fill'][0]['elements'][] = $optionArray;
+      }
     }
     return $elementArray;
   }
@@ -533,25 +549,24 @@ Array
   {
     if (($type=="ul"||$type=="ol")&&is_array($members))
     {
-      $elementArray = array("type"=>$type,"elements"=>array(array()));
-      $elementArray['elements'][0]['fill'] = array(array());
+      $elementArray = array("type"=>$type,"attributes"=>$listAttributes,'fill'=>array(array()));
+      $elementArray['fill'] = array(array());
 
-      $elementArray['elements'][0]['attributes'] = $listAttributes;
-
-      $elementArray['elements'][0]['fill'][0]['type'] = "li";
-      $elementArray['elements'][0]['fill'][0]['elements'] = array();
+      $elementArray['fill'][0]['type'] = "li";
+      $elementArray['fill'][0]['elements'] = array();
 
       foreach ($members as $member)
       {
         $fill = $member[array_keys($member)[0]];
         $memberArray = array('attributes'=>$memberAttributes);
         $memberArray['fill'] = $fill;
-        $elementArray['elements'][0]['fill'][0]['elements'][] = $memberArray;
+        $elementArray['fill'][0]['elements'][] = $memberArray;
       }
+      return $elementArray;
     }
     else
-      $elementArray='';
-    return $elementArray;
+      throw new Exception ('buildListArray: invalid input. Type: '.$type.', $members are '.(is_array($members)?'an array':'not an array'));
+    
   }
 
 }
