@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL); ini_set('display_errors', '1'); 
 
-require_once('pagificator.php');
+require_once('src/pagificator.php');
 
 $itemsQty = (isset($_POST['itemsQty'])?(int)$_POST['itemsQty']:1);
 $spanQty = (isset($_POST['spanQty'])?(int)$_POST['spanQty']:1);
