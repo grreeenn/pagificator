@@ -1,13 +1,10 @@
 *************************************
 Victor:
-
 It's ok.
-
 Every PHP-programmer must write his own framework one day :-)
 
 OnYourLips:
-
-You'd usually prefer to treat it as your teenage masturbation: won't talk about it.
+You'd usually prefer to treat it as your teenage masturbation and not to talk about it.
 
 
 https://bash.im/quote/436733
