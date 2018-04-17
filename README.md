@@ -5,7 +5,9 @@ Every PHP-programmer must write his own framework one day :-)
 
 OnYourLips:
 You'll usually treat it as your teenage masturbation: won't talk about it.
+
 https://bash.im/quote/436733
+
 but..it's here, so let it be here :)
 *************************************
 
