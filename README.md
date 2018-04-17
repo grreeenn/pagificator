@@ -1,4 +1,16 @@
+*************************************
+Victor:
+It's ok.
+Every PHP-programmer must write his own framework one day :-)
+
+OnYourLips:
+You'll usually treat it as your teenage masturbation: won't talk about it.
+https://bash.im/quote/436733
+but..it's here, so let it be here :)
+*************************************
+
 # The Pagificator (beta)
+
 This is very simple but yet powerful templating library written in PHP (5.3+ required). It allows to separate server-side and client-side development but still offers some space to think outside the template. 
 Lately such kind of work is done mostly by client-side templating; this library handles different approach - its main purpose is to serve the dynamical creation of static HTML pages in content management systems (I wrote it for my in-progress photo gallery CMS, which will generate static pages for albums and which allows to reuse the generated HTML and thus drop the server and client loads).
 
